@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Huertas Fighters · Referencia real de caminar</title>
+<style>
+:root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:#101722;color:#e8f0fb;font:16px system-ui,-apple-system,sans-serif}
+main{max-width:1020px;margin:auto;padding:16px}h1{font-size:clamp(22px,4vw,32px);margin:8px 0 6px}p{color:#b6c8dd;line-height:1.5}strong{color:#f4d37c}
+.scene{position:relative;height:370px;overflow:hidden;background:linear-gradient(#354c72,#7392a3 76%,#806b56 76%,#665445);border:1px solid #536681;border-radius:12px}
+.scene:after{content:'';position:absolute;bottom:75px;left:0;right:0;border-top:2px solid #d9bd8a;opacity:.65}
+.character{position:absolute;left:30%;bottom:78px;width:70px;height:100px;background-image:url('https://res.cloudinary.com/zave-zave/image/upload/v1620112635/ryu-walk_euwzqk.png');background-repeat:no-repeat;image-rendering:pixelated;transform:scale(2.6);transform-origin:bottom left;z-index:1}
+.controls{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:16px 0}button{border:1px solid #657ea0;background:#233956;color:#fff;border-radius:9px;padding:10px 14px;font-size:15px;cursor:pointer}button:focus-visible{outline:3px solid #f4d37c}label{display:flex;align-items:center;gap:8px}input{accent-color:#f4d37c}.frames{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px}.tile{border:1px solid #425775;background:#1a2739;border-radius:10px;text-align:center;padding:10px 0 4px}.tile.active{border:2px solid #f4d37c}.mini{height:110px;width:70px;margin:auto;background-image:url('https://res.cloudinary.com/zave-zave/image/upload/v1620112635/ryu-walk_euwzqk.png');background-repeat:no-repeat;background-position-y:-100px;image-rendering:pixelated}.tile span{font-size:12px;color:#bfd0e7}.info{background:#1b2a3d;border-radius:10px;padding:12px 16px;margin-top:18px}.error{display:none;color:#ffc0b8;font-weight:600}@media(max-width:600px){.scene{height:330px}.character{left:15%;transform:scale(2.3)}.frames{gap:3px}.tile{padding:4px 0}.mini{transform:scale(.8);transform-origin:top center;height:100px;margin-bottom:-20px}.tile span{font-size:11px}main{padding:10px}}
+</style></head><body><main>
+<h1>Huertas Fighters · prueba de caminar</h1>
+<p>Esta prueba utiliza <strong>cinco fotogramas reales de avance de Ryu</strong> como referencia mecánica. No es una generación de Kai. Observa cómo alternan los apoyos de los pies sin inventar posturas nuevas.</p>
+<div class="scene"><div id="fighter" class="character" aria-label="Ryu caminando"></div></div>
+<div class="controls">
+<button id="toggle">⏸ Pausar</button><button id="prev">◀ Fotograma</button><button id="next">Fotograma ▶</button>
+<label>Velocidad <input id="speed" type="range" min="3" max="14" value="8"> <output id="fps">8</output> fps</label>
+<label><input id="moving" type="checkbox"> Desplazar personaje</label>
+</div>
+<p id="status" role="status">Fotograma 1 de 5</p><p id="error" class="error">No se ha podido cargar la imagen externa. Puedes ver el ejemplo original en el enlace inferior.</p>
+<div id="frames" class="frames"></div>
+<div class="info"><p><strong>Qué comprobamos:</strong> las cinco posturas de un ciclo profesional y su continuidad. Después podremos decidir qué posturas sirven como guía para Kai, sin volver a generar una lámina completa a ciegas.</p>
+<p>Fuente: <a style="color:#a6d3ff" href="https://codepen.io/zave/pen/JjEgqMm" target="_blank" rel="noopener">ejemplo animado original de Ryu en CodePen ↗</a>. Los gráficos originales pertenecen a sus respectivos titulares. No se incorporan al juego.</p></div>
+</main><script>
+const src='https://res.cloudinary.com/zave-zave/image/upload/v1620112635/ryu-walk_euwzqk.png';
+const fighter=document.getElementById('fighter'), tiles=document.getElementById('frames'), status=document.getElementById('status');
+let frame=0,playing=true,fps=8,last=0,travel=0;
+const cells=[];
+for(let i=0;i<5;i++){const tile=document.createElement('div');tile.className='tile';const sprite=document.createElement('div');sprite.className='mini';sprite.style.backgroundPositionX=(-70*i)+'px';const num=document.createElement('span');num.textContent='Fotograma '+(i+1);tile.append(sprite,num);tile.onclick=()=>{frame=i;playing=false;document.getElementById('toggle').textContent='▶ Reproducir';render()};tiles.append(tile);cells.push(tile)}
+function render(){fighter.style.backgroundPositionX=(-70*frame)+'px';fighter.style.backgroundPositionY='-100px';status.textContent='Fotograma '+(frame+1)+' de 5';cells.forEach((el,i)=>el.classList.toggle('active',i===frame));fighter.style.left='calc(15% + '+travel+'px)'}
+function tick(t){if(playing&&t-last>=1000/fps){last=t;frame=(frame+1)%5;if(document.getElementById('moving').checked){travel=(travel+7)%Math.max(50,Math.min(500,document.querySelector('.scene').clientWidth-220))}else{travel=0}render()}requestAnimationFrame(tick)}
+document.getElementById('toggle').onclick=()=>{playing=!playing;document.getElementById('toggle').textContent=playing?'⏸ Pausar':'▶ Reproducir'};
+document.getElementById('prev').onclick=()=>{playing=false;document.getElementById('toggle').textContent='▶ Reproducir';frame=(frame+4)%5;render()};
+document.getElementById('next').onclick=()=>{playing=false;document.getElementById('toggle').textContent='▶ Reproducir';frame=(frame+1)%5;render()};
+document.getElementById('speed').oninput=e=>{fps=+e.target.value;document.getElementById('fps').textContent=fps};
+const probe=new Image;probe.onerror=()=>{document.getElementById('error').style.display='block'};probe.src=src;render();requestAnimationFrame(tick);
+</script></body></html>
